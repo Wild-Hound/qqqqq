@@ -1,19 +1,9 @@
+import { useRef, useState } from "react";
 import * as THREE from "three";
-import { useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Image, ScrollControls, Scroll, useScroll } from "@react-three/drei";
 import { proxy, useSnapshot } from "valtio";
 import { easing } from "maath";
-
-const state = proxy({
-  clicked: null,
-});
-
-const material = new THREE.LineBasicMaterial({ color: "white" });
-const geometry = new THREE.BufferGeometry().setFromPoints([
-  new THREE.Vector3(0, -0.5, 0),
-  new THREE.Vector3(0, 0.5, 0),
-]);
 
 const urls = [
   "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -38,112 +28,6 @@ const urls = [
   "https://images.unsplash.com/photo-1551298698-66b830a4f11c?q=80&w=1015&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
 ];
 
-function Minimap() {
-  const ref = useRef();
-  const scroll = useScroll();
-  const { height } = useThree((state) => state.viewport);
-  useFrame((state, delta) => {
-    ref.current.children.forEach((child, index) => {
-      const y = scroll.curve(
-        index / urls.length - 1.5 / urls.length,
-        4 / urls.length
-      );
-      easing.damp(child.scale, "y", 0.15 + y / 6, 0.15, delta);
-    });
-  });
-  return (
-    <group ref={ref}>
-      {urls.map((_, i) => (
-        <line
-          key={i}
-          geometry={geometry}
-          material={material}
-          position={[i * 0.06 - urls.length * 0.03, -height / 2 + 0.6, 0]}
-        />
-      ))}
-    </group>
-  );
-}
-
-function Item({ index, position, scale, c = new THREE.Color(), ...props }) {
-  const ref = useRef();
-  const scroll = useScroll();
-  const { clicked } = useSnapshot(state);
-  const [hovered, hover] = useState(false);
-  const click = () => (state.clicked = index === clicked ? null : index);
-  const over = () => hover(true);
-  const out = () => hover(false);
-
-  useFrame((state, delta) => {
-    const y = scroll.curve(
-      index / urls.length - 1.5 / urls.length,
-      4 / urls.length
-    );
-    easing.damp3(
-      ref.current.scale,
-      [clicked === index ? 4.7 : scale[0], clicked === index ? 5 : 4 + y, 1],
-      0.15,
-      delta
-    );
-    ref.current.material.scale = [ref.current.scale.x, ref.current.scale.y];
-    if (clicked !== null && index < clicked)
-      easing.damp(ref.current.position, "x", position[0] - 2, 0.15, delta);
-    if (clicked !== null && index > clicked)
-      easing.damp(ref.current.position, "x", position[0] + 2, 0.15, delta);
-    if (clicked === null || clicked === index)
-      easing.damp(ref.current.position, "x", position[0], 0.15, delta);
-    easing.damp(
-      ref.current.material,
-      "grayscale",
-      hovered || clicked === index ? 0 : Math.max(0, 1 - y),
-      0.15,
-      delta
-    );
-    easing.dampC(
-      ref.current.material.color,
-      hovered || clicked === index ? "white" : "#aaa",
-      hovered ? 0.3 : 0.15,
-      delta
-    );
-  });
-
-  return (
-    <Image
-      ref={ref}
-      {...props}
-      position={position}
-      scale={scale}
-      onClick={click}
-      onPointerOver={over}
-      onPointerOut={out}
-    />
-  );
-}
-
-function Items({ w = 0.7, gap = 0.15 }) {
-  const { width } = useThree((state) => state.viewport);
-  const xW = w + gap;
-  const pages = (width - xW + urls.length * xW) / width;
-
-  return (
-    <ScrollControls horizontal damping={0.1} pages={pages}>
-      <Minimap />
-      <Scroll>
-        {
-          urls.map((url, i) => <Item key={i} index={i} position={[i * xW, 0, 0]} scale={[w, 4, 1]} url={`${url}?not-from-cache-please`} />) /* prettier-ignore */
-        }
-      </Scroll>
-    </ScrollControls>
-  );
-}
-
-export const App = () => (
-  <Canvas
-    gl={{ antialias: false }} // at last
-    onPointerMissed={() => (state.clicked = null)} //at last
-  >
-    <Items />
-  </Canvas>
-);
+export const App = () => <div>Hello world</div>;
 
 export default App;
