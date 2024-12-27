@@ -1,9 +1,15 @@
-import { useRef, useState } from "react";
 import * as THREE from "three";
+import { useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Image, ScrollControls, Scroll, useScroll } from "@react-three/drei";
 import { proxy, useSnapshot } from "valtio";
 import { easing } from "maath";
+
+const material = new THREE.LineBasicMaterial({ color: "white" });
+const geometry = new THREE.BufferGeometry().setFromPoints([
+  new THREE.Vector3(0, -0.5, 0),
+  new THREE.Vector3(0, 0.5, 0),
+]);
 
 const urls = [
   "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -28,6 +34,49 @@ const urls = [
   "https://images.unsplash.com/photo-1551298698-66b830a4f11c?q=80&w=1015&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
 ];
 
-export const App = () => <div>Hello world</div>;
+function Minimap() {
+  const ref = useRef();
+  const scroll = useScroll();
+  const { height } = useThree((state) => state.viewport);
+  useFrame((state, delta) => {
+    ref.current.children.forEach((child, index) => {
+      const y = scroll.curve(
+        index / urls.length - 1.5 / urls.length,
+        4 / urls.length
+      );
+      easing.damp(child.scale, "y", 0.15 + y / 6, 0.15, delta);
+    });
+  });
+  return (
+    <group ref={ref}>
+      {urls.map((_, i) => (
+        <line
+          key={i}
+          geometry={geometry}
+          material={material}
+          position={[i * 0.06 - urls.length * 0.03, -height / 2 + 0.6, 0]}
+        />
+      ))}
+    </group>
+  );
+}
+
+function Items({ w = 0.7, gap = 0.15 }) {
+  const { width } = useThree((state) => state.viewport);
+  const xW = w + gap;
+  const pages = (width - xW + urls.length * xW) / width;
+
+  return (
+    <ScrollControls horizontal damping={0.1} pages={pages}>
+      <Minimap />
+    </ScrollControls>
+  );
+}
+
+export const App = () => (
+  <Canvas>
+    <Items />
+  </Canvas>
+);
 
 export default App;
